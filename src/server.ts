@@ -115,6 +115,7 @@ app.get("/users/:id", async (req: Request, res: Response) => {
     });
   }
 });
+//update a specific data based on the id
 app.put("/users/:id", async (req: Request, res: Response) => {
   const { id } = req.params;
   const { name, email, password, age } = req.body;
@@ -122,11 +123,13 @@ app.put("/users/:id", async (req: Request, res: Response) => {
     const result = await pool.query(
       `
             UPDATE users SET
-            name=COALESCE($1,name)
-            password= COALESCE($3,password)
-            age=COALESCE($4,age) WHERE id =$5 RETURNING *
+            name = COALESCE($1, name),
+            password = COALESCE($2, password),
+            age = COALESCE($3, age)
+            WHERE id =$4
+            RETURNING *
             `,
-      [name, email, password, age, id],
+      [name, password, age, id],
     );
 
     if (result.rows.length === 0) {
@@ -148,6 +151,7 @@ app.put("/users/:id", async (req: Request, res: Response) => {
     });
   }
 });
+//
 const port = config.port;
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
