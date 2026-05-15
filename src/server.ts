@@ -3,8 +3,8 @@ import express, {
   type Request,
   type Response,
 } from "express";
-import { Pool, Result } from "pg";
-import config from "./confing";
+import { Pool} from "pg";
+import config from "./config";
 const app: Application = express();
 
 //middleware
