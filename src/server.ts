@@ -13,7 +13,7 @@ app.use(express.json());
 //pool creation
 
 const pool = new Pool({
-  connectionString:config.connection_string,
+  connectionString: config.connection_string,
 });
 
 //db connection and create Table
@@ -75,7 +75,7 @@ app.get("/users", async (req: Request, res: Response) => {
     const result = await pool.query(`
             SELECT * FROM users`);
 
-      res.status(200).json({
+    res.status(200).json({
       message: "Data retrieved successfully",
       data: result.rows,
     });
@@ -86,7 +86,68 @@ app.get("/users", async (req: Request, res: Response) => {
     });
   }
 });
+//retrieve a single data
+app.get("/users/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const result = await pool.query(
+      `
+            SELECT * FROM users WHERE id = $1
+ `,
+      [id],
+    );
 
+    if (result.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "Data Not Found",
+        data: null,
+      });
+    }
+    res.status(200).json({
+      message: "Data retrieved successfully",
+      data: result.rows[0],
+    });
+  } catch (error: any) {
+    res.status(404).json({
+      message: error.message,
+      error: error,
+    });
+  }
+});
+app.put("/users/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { name, email, password, age } = req.body;
+  try {
+    const result = await pool.query(
+      `
+            UPDATE users SET
+            name=COALESCE($1,name)
+            password= COALESCE($3,password)
+            age=COALESCE($4,age) WHERE id =$5 RETURNING *
+            `,
+      [name, email, password, age, id],
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({
+        success: false,
+        message: "Data Not Found",
+        data: null,
+      });
+    }
+    res.status(200).json({
+        success: true,
+        message:"Update successful",
+        data:result.rows[0]
+    })
+  } catch (error: any) {
+    res.status(500).json({
+      message: error.message,
+      error: error,
+    });
+  }
+});
 const port = config.port;
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
